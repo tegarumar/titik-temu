@@ -2,27 +2,49 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { useRouter, usePathname } from 'next/navigation'
 import { Compass, Plus, Calendar, Settings, LogOut } from 'lucide-react'
-import { NeoButton } from './NeoButton'
+import { UnauthenticatedModal } from './UnauthenticatedModal'
 
-interface NavigationProps {
-  currentRole: 'joiner' | 'creator'
-  onRoleChange: (role: 'joiner' | 'creator') => void
-  onCreateClick?: () => void
-}
+export function Navigation() {
+  const { user, isLoggedIn, logout } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
+  const [showUnauthModal, setShowUnauthModal] = useState(false)
 
-export function Navigation({
-  currentRole,
-  onRoleChange,
-  onCreateClick,
-}: NavigationProps) {
-  const { user, logout } = useAuth()
+  const isCalendarActive = pathname === '/calendar'
+  const isCreateActive = pathname === '/create'
+
+  const handleCreateClick = () => {
+    if (!isLoggedIn) {
+      setShowUnauthModal(true)
+    } else {
+      router.push('/create')
+    }
+  }
+
+  const handleCalendarClick = () => {
+    if (!isLoggedIn) {
+      setShowUnauthModal(true)
+    } else {
+      router.push('/calendar')
+    }
+  }
+
+  const handleNavigateToAuth = () => {
+    setShowUnauthModal(false)
+    router.push('/auth')
+  }
+
   return (
     <nav className="bg-white border-b-4 border-black shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div 
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-all select-none"
+          >
             <div className="text-3xl font-black">🎯</div>
             <h1 className="text-2xl font-black hidden sm:block">TitikTemu</h1>
           </div>
@@ -30,12 +52,12 @@ export function Navigation({
           {/* Role Switcher */}
           <div className="flex gap-2">
             <button
-              onClick={() => onRoleChange('joiner')}
+              onClick={() => router.push('/')}
               className={`
                 px-3 py-2 font-bold border-3 border-black
                 transition-all
                 ${
-                  currentRole === 'joiner'
+                  pathname === '/'
                     ? 'bg-blue-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                     : 'bg-gray-200 hover:bg-gray-300'
                 }
@@ -45,12 +67,12 @@ export function Navigation({
               <span className="hidden sm:inline">Discover</span>
             </button>
             <button
-              onClick={() => onCreateClick ? onCreateClick() : onRoleChange('creator')}
+              onClick={handleCreateClick}
               className={`
                 px-3 py-2 font-bold border-3 border-black
                 transition-all
                 ${
-                  currentRole === 'creator'
+                  isCreateActive
                     ? 'bg-red-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                     : 'bg-gray-200 hover:bg-gray-300'
                 }
@@ -63,7 +85,15 @@ export function Navigation({
 
           {/* Action Buttons */}
           <div className="flex gap-2 items-center">
-            <button className="p-2 border-3 border-black bg-white hover:bg-gray-100 transition-all">
+            <button 
+              onClick={handleCalendarClick}
+              className={`p-2 border-3 border-black transition-all ${
+                isCalendarActive 
+                  ? 'bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+                  : 'bg-white hover:bg-gray-100'
+              }`}
+              title="Calendar Events"
+            >
               <Calendar size={20} />
             </button>
             <button className="p-2 border-3 border-black bg-white hover:bg-gray-100 transition-all">
@@ -93,6 +123,14 @@ export function Navigation({
           </div>
         </div>
       </div>
+
+      {/* Unauth Modal — triggered by navbar clicks when unauthenticated */}
+      <UnauthenticatedModal
+        isOpen={showUnauthModal}
+        onClose={() => setShowUnauthModal(false)}
+        onNavigateToAuth={handleNavigateToAuth}
+        action="view-event"
+      />
     </nav>
   )
 }
