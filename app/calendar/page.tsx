@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { Navigation } from '@/components/Navigation'
@@ -23,12 +23,12 @@ const formatIdDate = (date: Date): string => {
 }
 
 // Group and sort events
-const getGroupedAndSortedEvents = (events: Event[]) => {
-  // Sort events by date ascending (closest first)
+const getGroupedAndSortedEvents = (events: Event[], sortOrder: 'asc' | 'desc') => {
+  // Sort events by date ascending (closest first) or descending (furthest first)
   const sorted = [...events].sort((a, b) => {
     const dateA = new Date(a.date).getTime()
     const dateB = new Date(b.date).getTime()
-    return dateA - dateB
+    return sortOrder === 'asc' ? dateA - dateB : dateB - dateA
   })
 
   // Group by date string
@@ -45,13 +45,19 @@ const getGroupedAndSortedEvents = (events: Event[]) => {
 }
 
 export default function CalendarPage() {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, isLoading } = useAuth()
   const router = useRouter()
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [userRole, setUserRole] = useState<'joiner' | 'creator'>('joiner')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
-  const groupedEvents = getGroupedAndSortedEvents(mockEvents)
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      setShowAuthModal(true)
+    }
+  }, [isLoggedIn, isLoading])
+
+  const groupedEvents = getGroupedAndSortedEvents(mockEvents, sortOrder)
 
   const handleEventSelect = (event: Event) => {
     if (!isLoggedIn) {
@@ -66,15 +72,54 @@ export default function CalendarPage() {
     router.push('/auth')
   }
 
+  const handleCloseModal = () => {
+    setShowAuthModal(false)
+    router.push('/')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="max-w-7xl mx-auto px-4 py-8 text-center">
+          <p className="font-bold text-lg">Loading...</p>
+        </main>
+      </div>
+    )
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          <div className="bg-red-100 border-4 border-black p-8 text-center max-w-xl mx-auto my-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-2xl font-black mb-4">Akses Dibatasi 🔒</h2>
+            <p className="text-gray-700 mb-6 font-semibold">
+              Anda harus masuk (login) terlebih dahulu untuk melihat kalender event.
+            </p>
+            <button
+              onClick={() => router.push('/auth')}
+              className="bg-yellow-300 border-3 border-black px-6 py-3 font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
+            >
+              Masuk Sekarang
+            </button>
+          </div>
+        </main>
+        
+        <UnauthenticatedModal
+          isOpen={showAuthModal}
+          onClose={handleCloseModal}
+          onNavigateToAuth={handleNavigateToAuth}
+          action="view-event"
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Navigation
-        currentRole={userRole}
-        onRoleChange={(role) => {
-          setUserRole(role)
-          router.push('/')
-        }}
-      />
+      <Navigation />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <PageHeader
@@ -82,6 +127,32 @@ export default function CalendarPage() {
           subtitle="Daftar event terdekat yang dikelompokkan berdasarkan tanggal"
           color="purple"
         />
+
+        {/* Sort Filter Control */}
+        <div className="flex justify-end mb-6">
+          <div className="flex border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <button
+              onClick={() => setSortOrder('asc')}
+              className={`px-4 py-2 font-black text-sm border-r-4 border-black transition-all cursor-pointer ${
+                sortOrder === 'asc'
+                  ? 'bg-blue-300'
+                  : 'bg-white hover:bg-gray-100'
+              }`}
+            >
+              📅 Terdekat
+            </button>
+            <button
+              onClick={() => setSortOrder('desc')}
+              className={`px-4 py-2 font-black text-sm transition-all cursor-pointer ${
+                sortOrder === 'desc'
+                  ? 'bg-blue-300'
+                  : 'bg-white hover:bg-gray-100'
+              }`}
+            >
+              ⏳ Terjauh
+            </button>
+          </div>
+        </div>
 
         <div className="space-y-12">
           {Object.keys(groupedEvents).length > 0 ? (
@@ -132,14 +203,6 @@ export default function CalendarPage() {
         isOpen={!!selectedEvent}
         onClose={() => setSelectedEvent(null)}
         userRole="joiner"
-      />
-
-      {/* Unauthenticated Modal */}
-      <UnauthenticatedModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onNavigateToAuth={handleNavigateToAuth}
-        action="view-event"
       />
     </div>
   )
