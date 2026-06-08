@@ -12,6 +12,7 @@ export interface User {
 interface AuthContextType {
   isLoggedIn: boolean
   user: User | null
+  isLoading: boolean
   login: (email: string, password: string) => void
   signUp: (name: string, email: string, password: string) => void
   logout: () => void
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [user, setUser] = useState<User | null>(null)
 
   const login = (email: string, password: string) => {
@@ -57,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, login, signUp, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, user, login, signUp, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

@@ -7,19 +7,19 @@ import { Navigation } from '@/components/Navigation'
 import { PageHeader } from '@/components/PageHeader'
 import { EventCard } from '@/components/EventCard'
 import { EventDetailModal } from '@/components/EventDetailModal'
-import { UnauthenticatedModal } from '@/components/UnauthenticatedModal'
+import { RestrictedView } from '@/components/RestrictedView'
 import { mockEvents } from '@/lib/mock-data'
 import { Event } from '@/lib/types'
 
-// Format date into Indonesian locale style, e.g., "20 MEI 2026"
-const formatIdDate = (date: Date): string => {
+// Format date into English locale style, e.g., "MAY 20, 2026"
+const formatEnDate = (date: Date): string => {
   const d = new Date(date)
   const options: Intl.DateTimeFormatOptions = {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   }
-  return new Intl.DateTimeFormat('id-ID', options).format(d).toUpperCase()
+  return new Intl.DateTimeFormat('en-US', options).format(d).toUpperCase()
 }
 
 // Group and sort events
@@ -34,7 +34,7 @@ const getGroupedAndSortedEvents = (events: Event[], sortOrder: 'asc' | 'desc') =
   // Group by date string
   const groups: { [key: string]: Event[] } = {}
   sorted.forEach((event) => {
-    const dateStr = formatIdDate(event.date)
+    const dateStr = formatEnDate(event.date)
     if (!groups[dateStr]) {
       groups[dateStr] = []
     }
@@ -90,30 +90,13 @@ export default function CalendarPage() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="bg-red-100 border-4 border-black p-8 text-center max-w-xl mx-auto my-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="text-2xl font-black mb-4">Akses Dibatasi 🔒</h2>
-            <p className="text-gray-700 mb-6 font-semibold">
-              Anda harus masuk (login) terlebih dahulu untuk melihat kalender event.
-            </p>
-            <button
-              onClick={() => router.push('/auth')}
-              className="bg-yellow-300 border-3 border-black px-6 py-3 font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
-            >
-              Masuk Sekarang
-            </button>
-          </div>
-        </main>
-        
-        <UnauthenticatedModal
-          isOpen={showAuthModal}
-          onClose={handleCloseModal}
-          onNavigateToAuth={handleNavigateToAuth}
-          action="view-event"
-        />
-      </div>
+      <RestrictedView
+        message="You must login first to view the event calendar."
+        showAuthModal={showAuthModal}
+        onCloseModal={handleCloseModal}
+        onNavigateToAuth={handleNavigateToAuth}
+        action="view-event"
+      />
     )
   }
 
@@ -124,7 +107,7 @@ export default function CalendarPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <PageHeader
           title="Event Calendar"
-          subtitle="Daftar event terdekat yang dikelompokkan berdasarkan tanggal"
+          subtitle="List of events you must attend!"
           color="purple"
         />
 
@@ -139,7 +122,7 @@ export default function CalendarPage() {
                   : 'bg-white hover:bg-gray-100'
               }`}
             >
-              📅 Terdekat
+              📅 Closest
             </button>
             <button
               onClick={() => setSortOrder('desc')}
@@ -149,7 +132,7 @@ export default function CalendarPage() {
                   : 'bg-white hover:bg-gray-100'
               }`}
             >
-              ⏳ Terjauh
+              ⏳ Furthest
             </button>
           </div>
         </div>
@@ -158,7 +141,6 @@ export default function CalendarPage() {
           {Object.keys(groupedEvents).length > 0 ? (
             Object.entries(groupedEvents).map(([dateStr, eventsOnDate]) => (
               <div key={dateStr} className="space-y-6">
-                {/* Date Header Group with Neo-Brutalist divider */}
                 <div className="flex items-center gap-4">
                   <div className="bg-yellow-300 border-4 border-black px-4 py-2 font-black text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase">
                     📅 {dateStr}
@@ -180,8 +162,8 @@ export default function CalendarPage() {
             ))
           ) : (
             <div className="bg-red-100 border-4 border-black p-8 text-center">
-              <p className="text-xl font-black mb-4">Belum ada event</p>
-              <p className="text-gray-700">Kembali lagi nanti untuk melihat event terbaru.</p>
+              <p className="text-xl font-black mb-4">No events yet</p>
+              <p className="text-gray-700">Check back later for new events.</p>
             </div>
           )}
         </div>
