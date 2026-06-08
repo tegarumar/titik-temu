@@ -1,8 +1,8 @@
 import { AuthPage } from '@/components/AuthPage'
 
 export const metadata = {
-  title: 'Login atau Daftar — TitikTemu',
-  description: 'Masuk atau buat akun baru untuk mulai menemukan dan membuat event kasual bersama komunitasmu.',
+  title: 'Login or Sign Up — TitikTemu',
+  description: 'Log in or create a new account to start discovering and creating casual events with your community.',
 }
 
 export default function AuthRoute() {
