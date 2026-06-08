@@ -63,7 +63,7 @@ export function CreatorView({ events, creatorEvents }: CreatorViewProps) {
               <LocationPicker
                 value={selectedLocation}
                 onChange={(location) => setSelectedLocation(location)}
-                placeholder="Search location..."
+                placeholder="Input location name..."
               />
             </div>
             <input
@@ -136,9 +136,9 @@ export function CreatorView({ events, creatorEvents }: CreatorViewProps) {
                 onClick={() => setSelectedEvent(event)}
               >
                 <EventCard event={event} />
-                <div className="absolute top-4 right-4 bg-blue-400 border-2 border-black px-3 py-1 text-sm font-bold">
+                {/* <div className="absolute top-4 right-4 bg-blue-400 border-2 border-black px-3 py-1 text-sm font-bold">
                   Your Event
-                </div>
+                </div> */}
               </div>
             ))}
           </div>
