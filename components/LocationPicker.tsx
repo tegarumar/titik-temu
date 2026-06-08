@@ -3,13 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { MapPin } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import L from 'leaflet'
-
-// Dynamic import untuk Leaflet Map (client-only)
-const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
-const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
-const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false })
-const useMapEvent = dynamic(() => import('react-leaflet').then(mod => mod.useMapEvent), { ssr: false })
 
 interface LocationPickerProps {
   value?: string
@@ -17,22 +10,73 @@ interface LocationPickerProps {
   placeholder?: string
 }
 
-// Map click handler component
-function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  useMapEvent('click', (e) => {
-    onMapClick(e.latlng.lat, e.latlng.lng)
-  })
-  return null
-}
+const MapView = dynamic(
+  async () => {
+    const RL = await import('react-leaflet')
+    const L = (await import('leaflet')).default
+
+    delete (L.Icon.Default.prototype as any)._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    })
+
+    const MapEvents = ({ onMapClick, center }: { onMapClick: (lat: number, lng: number) => void, center: [number, number] }) => {
+      const map = RL.useMap()
+      
+      RL.useMapEvent('click', (e) => {
+        onMapClick(e.latlng.lat, e.latlng.lng)
+      })
+
+      useEffect(() => {
+        map.flyTo(center, map.getZoom())
+      }, [center, map])
+
+      return null
+    }
+
+    // Return komponen peta utama
+    return function MapComponent({ 
+      latitude, 
+      longitude, 
+      onMapClick 
+    }: { 
+      latitude: number, 
+      longitude: number, 
+      onMapClick: (lat: number, lng: number) => void 
+    }) {
+      return (
+        <RL.MapContainer
+          center={[latitude, longitude]}
+          zoom={13}
+          scrollWheelZoom={true}
+          className="w-full h-full relative z-0"
+        >
+          <RL.TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <RL.Marker position={[latitude, longitude]} />
+          <MapEvents onMapClick={onMapClick} center={[latitude, longitude]} />
+        </RL.MapContainer>
+      )
+    }
+  },
+  { 
+    ssr: false, // Wajib false untuk Leaflet
+    loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-100 font-bold">Memuat Peta...</div>
+  }
+)
 
 export function LocationPicker({ value, onChange, placeholder = 'Enter location name...' }: LocationPickerProps) {
   const [locationName, setLocationName] = useState(value || '')
-  const [latitude, setLatitude] = useState<number>(-6.2088)  // Default Jakarta center
+  const [latitude, setLatitude] = useState<number>(-6.2088)  // Default Jakarta
   const [longitude, setLongitude] = useState<number>(106.8456)
   const [showMap, setShowMap] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Update parent when coordinates change
+  // Update parent saat koordinat/nama berubah
   useEffect(() => {
     if (locationName) {
       onChange?.(locationName, { lat: latitude, lng: longitude })
@@ -45,17 +89,13 @@ export function LocationPicker({ value, onChange, placeholder = 'Enter location 
   }
 
   const handleLatitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value)
-    if (!isNaN(value)) {
-      setLatitude(value)
-    }
+    const val = parseFloat(e.target.value)
+    if (!isNaN(val)) setLatitude(val)
   }
 
   const handleLongitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value)
-    if (!isNaN(value)) {
-      setLongitude(value)
-    }
+    const val = parseFloat(e.target.value)
+    if (!isNaN(val)) setLongitude(val)
   }
 
   return (
@@ -82,31 +122,20 @@ export function LocationPicker({ value, onChange, placeholder = 'Enter location 
             Click on map to select location coordinates
           </div>
 
-          {/* Leaflet Map Container */}
-          <div className="w-full h-80 relative">
-            <MapContainer
-              center={[latitude, longitude]}
-              zoom={13}
-              scrollWheelZoom={true}
-              className="w-full h-full"
-              style={{ zIndex: 0 }}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={[latitude, longitude]}>
-              </Marker>
-              <MapClickHandler onMapClick={handleMapClick} />
-            </MapContainer>
+          {/* Leaflet Map Wrapper */}
+          <div className="w-full h-80 relative bg-gray-50 z-0">
+            <MapView 
+              latitude={latitude} 
+              longitude={longitude} 
+              onMapClick={handleMapClick} 
+            />
           </div>
 
           {/* Coordinates Input Section */}
-          <div className="border-t-3 border-black p-4 bg-yellow-100 space-y-3">
+          <div className="border-t-3 border-black p-4 bg-yellow-100 space-y-3 relative z-10">
             <div className="text-xs font-bold text-gray-700 uppercase">Set coordinates</div>
             
             <div className="grid grid-cols-2 gap-3">
-              {/* Latitude Input */}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-gray-700">Latitude</label>
                 <input
@@ -114,12 +143,11 @@ export function LocationPicker({ value, onChange, placeholder = 'Enter location 
                   step="0.0001"
                   value={latitude}
                   onChange={handleLatitudeChange}
-                  placeholder="Latitude"
-                  className="border-3 border-black p-2 font-mono font-bold text-sm focus:outline-none focus:ring-2 focus:ring-black bg-white"
+                  readOnly
+                  className="border-3 border-black p-2 font-mono font-bold text-sm focus:outline-none bg-gray-200 cursor-default"
                 />
               </div>
 
-              {/* Longitude Input */}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-gray-700">Longitude</label>
                 <input
@@ -127,8 +155,8 @@ export function LocationPicker({ value, onChange, placeholder = 'Enter location 
                   step="0.0001"
                   value={longitude}
                   onChange={handleLongitudeChange}
-                  placeholder="Longitude"
-                  className="border-3 border-black p-2 font-mono font-bold text-sm focus:outline-none focus:ring-2 focus:ring-black bg-white"
+                  readOnly
+                  className="border-3 border-black p-2 font-mono font-bold text-sm focus:outline-none bg-gray-200 cursor-default"
                 />
               </div>
             </div>
