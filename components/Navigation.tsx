@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { useRouter, usePathname } from 'next/navigation'
 import { Compass, Plus, Calendar, Settings, LogOut } from 'lucide-react'
 import { NeoButton } from './NeoButton'
 
@@ -17,12 +18,19 @@ export function Navigation({
   onCreateClick,
 }: NavigationProps) {
   const { user, logout } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
+  const isCalendarActive = pathname === '/calendar'
+
   return (
     <nav className="bg-white border-b-4 border-black shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div 
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-all select-none"
+          >
             <div className="text-3xl font-black">🎯</div>
             <h1 className="text-2xl font-black hidden sm:block">TitikTemu</h1>
           </div>
@@ -30,12 +38,17 @@ export function Navigation({
           {/* Role Switcher */}
           <div className="flex gap-2">
             <button
-              onClick={() => onRoleChange('joiner')}
+              onClick={() => {
+                if (pathname !== '/') {
+                  router.push('/')
+                }
+                onRoleChange('joiner')
+              }}
               className={`
                 px-3 py-2 font-bold border-3 border-black
                 transition-all
                 ${
-                  currentRole === 'joiner'
+                  currentRole === 'joiner' && pathname === '/'
                     ? 'bg-blue-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                     : 'bg-gray-200 hover:bg-gray-300'
                 }
@@ -45,12 +58,21 @@ export function Navigation({
               <span className="hidden sm:inline">Discover</span>
             </button>
             <button
-              onClick={() => onCreateClick ? onCreateClick() : onRoleChange('creator')}
+              onClick={() => {
+                if (pathname !== '/') {
+                  router.push('/')
+                  setTimeout(() => {
+                    if (onCreateClick) onCreateClick()
+                  }, 100)
+                } else {
+                  if (onCreateClick) onCreateClick()
+                }
+              }}
               className={`
                 px-3 py-2 font-bold border-3 border-black
                 transition-all
                 ${
-                  currentRole === 'creator'
+                  currentRole === 'creator' && pathname === '/'
                     ? 'bg-red-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                     : 'bg-gray-200 hover:bg-gray-300'
                 }
@@ -63,7 +85,15 @@ export function Navigation({
 
           {/* Action Buttons */}
           <div className="flex gap-2 items-center">
-            <button className="p-2 border-3 border-black bg-white hover:bg-gray-100 transition-all">
+            <button 
+              onClick={() => router.push('/calendar')}
+              className={`p-2 border-3 border-black transition-all ${
+                isCalendarActive 
+                  ? 'bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+                  : 'bg-white hover:bg-gray-100'
+              }`}
+              title="Calendar Events"
+            >
               <Calendar size={20} />
             </button>
             <button className="p-2 border-3 border-black bg-white hover:bg-gray-100 transition-all">
