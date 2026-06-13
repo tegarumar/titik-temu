@@ -106,7 +106,7 @@ export default function CalendarPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <PageHeader
-          title="Event Calendar"
+          title="Upcoming Events"
           subtitle="List of events you must attend!"
           color="purple"
         />
