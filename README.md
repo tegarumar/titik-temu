@@ -4,13 +4,6 @@
 
 **TitikTemu** is a vibrant social platform for discovering, creating, and joining casual events in your community. Whether you want to join a gaming session, basketball game, gym workout, or hangout - TitikTemu connects you with people and events.
 
-The application features a bold **Neo-Brutalism** design aesthetic with:
-- Vibrant solid colors (red, yellow, blue, green, purple)
-- Thick black 4px borders on all elements
-- Hard drop shadows (4px offset)
-- Sharp corners (no rounded edges)
-- Bento Grid layout for event discovery
-- Bold, expressive typography
 
 ## Features
 
@@ -40,45 +33,6 @@ The application features a bold **Neo-Brutalism** design aesthetic with:
 - **Participant Management**: See joined and pending participants
 - **Events Joined**: Display of other events you're participating in
 
-### 👤 User Profile
-
-- User avatar and name
-- Bio and rating system (star-based)
-- Statistics: Events Created, Events Joined
-- Edit profile and settings options
-
-## Design System
-
-### Neo-Brutalism Aesthetic
-
-The application embraces **Neo-Brutalism** design principles with:
-
-**Colors:**
-- Primary Red: `#ff3333` - Used for primary actions and accent
-- Secondary Yellow: `#ffff00` - Used for highlights and category badges
-- Accent Blue: `#0066ff` - Used for info and interactive states
-- Green: `#00cc00` - Used for success states
-- Black: `#000000` - Borders, text, shadows
-- White: `#ffffff` - Backgrounds and contrast
-
-**Typography:**
-- DM Sans for body text (sans-serif)
-- Bold and heavy font weights throughout
-- Large, readable typography for clear hierarchy
-- Text-balance for optimal line breaking
-
-**Components:**
-- 4px solid black borders on all UI elements
-- 4px hard drop shadows with black
-- Sharp corners (0px border-radius)
-- Clear visual hierarchy through size and color
-- Strong visual feedback on interactions (lift effect on hover)
-
-**Layout:**
-- Flexbox for primary layout method
-- CSS Grid for complex 2D layouts (Bento)
-- Responsive design with mobile-first approach
-- Generous spacing and padding
 
 ## Project Structure
 
@@ -109,48 +63,6 @@ The application embraces **Neo-Brutalism** design principles with:
   /utils.ts            # Utility functions (shadcn)
   /utils-custom.ts     # Custom utility functions
 ```
-
-## Mock Data
-
-The application comes with sample data including:
-- **5 Events** covering different categories (Gaming, Sports, Fitness, Hangout)
-- **Sample User** (Alex Wijaya) with event history
-- **Multiple Participants** for each event with different statuses (Joined, Pending)
-
-## Key Components
-
-### EventCard
-Displays event summary with:
-- Event title and category badge
-- Short description
-- Date, time, and location
-- Participant count and available spots
-- Status indicator
-- Approval requirement badge
-
-### EventDetailModal
-Full event details including:
-- Large category emoji display
-- Complete event information
-- Location with address
-- Full participant list with status
-- Creator information
-- Tags
-- Action buttons (Join/Leave or Edit/Close)
-
-### NeoButton
-Styled button component with variants:
-- Primary (Red)
-- Secondary (Yellow)
-- Success (Green)
-- Danger (Red)
-- Outline (White with border)
-
-Includes interactive animations:
-- Hover: Increased shadow and slight lift
-- Active: Reduced shadow and depression effect
-- Transition: Smooth 100ms duration
-
 ## Getting Started
 
 ### Installation
@@ -202,16 +114,6 @@ Potential features for expansion:
 - Event attendance tracking
 - Social features (follow, friend requests)
 
-## Design Philosophy
-
-TitikTemu embraces Neo-Brutalism as a deliberate design choice because:
-
-1. **Bold & Confident**: The thick borders and solid colors make a clear statement
-2. **Accessible**: High contrast and large text improve readability
-3. **Playful**: The vibrant color palette and sharp edges create a casual, fun atmosphere
-4. **Modern**: Contemporary design style that feels fresh and trendy
-5. **Casual**: Perfect for a platform focused on informal, social events
-
 ## Notes
 
 - This is a frontend-only demo with mock data
@@ -220,5 +122,3 @@ TitikTemu embraces Neo-Brutalism as a deliberate design choice because:
 - All timestamps use mock dates for demonstration
 
 ---
-
-Built with ❤️ using Neo-Brutalism design principles. Perfect for discovering and creating casual events in your community!
